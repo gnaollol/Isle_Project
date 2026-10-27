@@ -9,7 +9,7 @@
 	<key>CustomBuildLocationType</key>
 	<string>RelativeToDerivedData</string>
 	<key>DerivedDataCustomLocation</key>
-	<string>/Users/gnaollol/Documents/macOS_Projects</string>
+	<string>/Users/gnaollol/Library/Developer/Xcode/DerivedData</string>
 	<key>DerivedDataLocationStyle</key>
 	<string>AbsolutePath</string>
 	<key>ShowSharedSchemesAutomaticallyEnabled</key>
