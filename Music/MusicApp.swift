@@ -21,7 +21,7 @@ enum MusicApp: String, CaseIterable {
     var notificationName: Notification.Name {
         switch self {
         case .appleMusic: Notification.Name("com.apple.Music.playerInfo")
-        case .spotify: Notification.Name("com.spotitfy.client.PlaybackStateChanged")
+        case .spotify: Notification.Name("com.spotify.client.PlaybackStateChanged")
         }
     }
     
