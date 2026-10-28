@@ -8,8 +8,10 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: NotchPanel?
+    private let music = MusicController()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        music.refresh()
         setupPanel()
         
         NotificationCenter.default.addObserver(
@@ -26,7 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 
                 ?? NSScreen.main else { return }
         
-        panel = NotchPanel(screen: screen)
+        panel = NotchPanel(screen: screen, music: music)
         panel?.orderFrontRegardless()
     }
 }

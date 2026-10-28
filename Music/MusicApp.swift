@@ -29,12 +29,14 @@ enum MusicApp: String, CaseIterable {
         !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty
     }
     
+    // AppleScript doesn't allow a statement to continue onto the next line,
+    // so the `return` line must stay on one line.
     var statusScript: String {
         """
         tell application "\(rawValue)"
             if player state is stopped then return ""
-            return (name of current track) & linefeed & (artist of current track) & 
-        linefeed & (player state as string)
+            set trackInfo to (name of current track) & linefeed & (artist of current track)
+            return trackInfo & linefeed & (player state as string)
         end tell
         """
     }

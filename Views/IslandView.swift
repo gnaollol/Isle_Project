@@ -8,21 +8,22 @@ import SwiftUI
 
 struct IslandView: View {
     let state: IslandState
+    let music: MusicController
 
     var body: some View {
         VStack {
             NotchShape(radius: state.isExpanded ? 24 : 10)
                 .fill(.black)
                 .frame(width: state.currentSize.width, height: state.currentSize.height)
-
-            Spacer() 
+                .overlay(alignment: .bottom){
+                    if state.isExpanded{
+                        NowPlayingView(music: music)
+                            .frame(height: state.expandedSize.height - state.closedSize.height)
+                            .transition(.opacity)
+                    }
+                }
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-}
-
-#Preview {
-    IslandView(state: IslandState(notchSize: CGSize(width: 200, height: 32)))
-        .frame(width: 640, height: 240)
-        .background(.gray)
 }

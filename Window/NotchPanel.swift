@@ -16,7 +16,7 @@ final class NotchPanel: NSPanel {
     
     private let hoverPadding: CGFloat = 8
     
-    init(screen: NSScreen){
+    init(screen: NSScreen, music: MusicController){
         state = IslandState(notchSize: screen.notchSize)
         screenFrame = screen.frame
         
@@ -50,7 +50,7 @@ final class NotchPanel: NSPanel {
         ignoresMouseEvents = true
         acceptsMouseMovedEvents = true
         
-        contentView = NSHostingView(rootView: IslandView(state: state))
+        contentView = IslandHostingView(rootView: IslandView(state: state, music: music))
         
         tracker = MouseTracker { [weak self] point in
             self?.mouseMoved(to: point)
@@ -88,4 +88,8 @@ final class NotchPanel: NSPanel {
         )
         return rect.insetBy(dx: -hoverPadding, dy: -hoverPadding)
     }
+}
+
+final class IslandHostingView<Content: View>: NSHostingView<Content>{
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }

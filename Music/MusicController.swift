@@ -14,60 +14,87 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 @Observable
 final class MusicController {
     var title: String?
     var artist: String?
     var isPlaying = false
     private(set) var activeApp: MusicApp?
+
     @ObservationIgnored
     private var observers: [(center: NotificationCenter, token: NSObjectProtocol)] = []
 
+    // After play/pause, Music first re-sends the OLD state, then the new one ~60ms later.
+    // Until the expected state arrives (or the deadline passes), stale updates are ignored.
+    @ObservationIgnored
+    private var pendingPlayState: (isPlaying: Bool, deadline: Date)?
+
+   
+    nonisolated private static let scriptQueue = DispatchQueue(label: "MusicController.scripts")
+
     init() {
+        
+        let distributed = DistributedNotificationCenter.default()
         for app in MusicApp.allCases {
-            let center = DistributedNotificationCenter.default()
-            
-            let token = center.addObserver(
+            let token = distributed.addObserver(
                 forName: app.notificationName,
                 object: nil,
                 queue: .main
-            ) { [ weak self ] notification in
-                self?.handle(notification.userInfo, from: app)
+            ) { [weak self] notification in
+                let info = notification.userInfo
+                MainActor.assumeIsolated {
+                    self?.handle(info, from: app)
+                }
             }
-            
-            observers.append((center,token))
+            observers.append((distributed, token))
         }
-        let workspaceCenter = NSWorkspace.shared.notificationCenter
+
         
-        let workspaceToken = workspaceCenter.addObserver(
+        let workspace = NSWorkspace.shared.notificationCenter
+        let token = workspace.addObserver(
             forName: NSWorkspace.didTerminateApplicationNotification,
             object: nil,
             queue: .main
-        ) { [ weak self ] notification in
-            let quitApp = notification.userInfo?[
-                NSWorkspace.applicationUserInfoKey
-            ] as? NSRunningApplication
-            if quitApp?.bundleIdentifier == self?.activeApp?.bundleID {
-                self?.clear()
+        ) { [weak self] notification in
+            let quitApp = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            let bundleID = quitApp?.bundleIdentifier
+            MainActor.assumeIsolated {
+                if bundleID == self?.activeApp?.bundleID {
+                    self?.clear()
+                }
             }
         }
-        observers.append((workspaceCenter,workspaceToken))
+        observers.append((workspace, token))
     }
-        deinit {
-            for(center, token) in observers {
-                center.removeObserver(token)
+
+    deinit {
+        for (center, token) in observers {
+            center.removeObserver(token)
         }
     }
 
 
     func refresh() {
-        for app in MusicApp.allCases where app.isRunning {
-            guard let result = runScript(app.statusScript) else { continue }
-            let lines = result.components(separatedBy: "\n")
-            guard lines.count == 3 else { continue }
+        Task {
+            var pausedResult: (app: MusicApp, lines: [String])?
 
-            apply(title: lines[0], artist: lines[1], playing: lines[2] == "playing", from: app)
-            if isPlaying { break }
+            for app in MusicApp.allCases where app.isRunning {
+                guard let output = await Self.runScript(app.statusScript) else { continue }
+                let lines = output.components(separatedBy: "\n")
+                guard lines.count == 3 else { continue }
+
+                // Prefer whichever app is actually playing
+                if lines[2] == "playing" {
+                    apply(title: lines[0], artist: lines[1], playing: true, from: app)
+                    return
+                }
+                pausedResult = pausedResult ?? (app, lines)
+            }
+
+            if let pausedResult {
+                apply(title: pausedResult.lines[0], artist: pausedResult.lines[1], playing: false, from: pausedResult.app)
+            }
         }
     }
 
@@ -79,10 +106,19 @@ final class MusicController {
             return
         }
 
+        let playing = state == "Playing"
+
+        if let pending = pendingPlayState, app == activeApp {
+            if pending.isPlaying != playing, Date() < pending.deadline {
+                return // stale update from before the button press
+            }
+            pendingPlayState = nil
+        }
+
         apply(
             title: info?["Name"] as? String,
             artist: info?["Artist"] as? String,
-            playing: state == "Playing",
+            playing: playing,
             from: app
         )
     }
@@ -103,20 +139,31 @@ final class MusicController {
         activeApp = nil
     }
 
-    func playPause() { send("playpause") }
+
+    func playPause() {
+        isPlaying.toggle()
+        pendingPlayState = (isPlaying, Date().addingTimeInterval(1))
+        send("playpause")
+    }
+
     func nextTrack() { send("next track") }
     func previousTrack() { send("previous track") }
 
     private func send(_ command: String) {
         guard let app = activeApp, app.isRunning else { return }
-        runScript("tell application \"\(app.rawValue)\" to \(command)")
+        let source = "tell application \"\(app.rawValue)\" to \(command)"
+        Task { await Self.runScript(source) }
     }
 
     @discardableResult
-    private func runScript(_ source: String) -> String? {
-        var error: NSDictionary?
-        let result = NSAppleScript(source: source)?.executeAndReturnError(&error)
-        if let error { print("AppleScript error:", error) }
-        return result?.stringValue
+    nonisolated private static func runScript(_ source: String) async -> String? {
+        await withCheckedContinuation { continuation in
+            scriptQueue.async {
+                var error: NSDictionary?
+                let result = NSAppleScript(source: source)?.executeAndReturnError(&error)
+                if let error { print("AppleScript error:", error) }
+                continuation.resume(returning: result?.stringValue)
+            }
+        }
     }
 }
