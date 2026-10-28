@@ -33,7 +33,7 @@ struct MusicBarsView: View {
 
     private func barHeight(_ index: Int, time: Double, maxHeight: CGFloat) -> CGFloat {
         guard isPlaying else { return 3 }
-        let wave = abs(sin(time * speeds[index] + offsets[index]))
+        let wave = abs(cos(time * speeds[index] + offsets[index]))
         return maxHeight * (0.3 + 0.7 * wave)
     }
 }

@@ -6,20 +6,32 @@
 //
 
 import SwiftUI
-import CoreGraphics
 
 @Observable
-final class IslandState{
+final class IslandState {
     var isExpanded = false
-    
+
     let closedSize: CGSize
     let expandedSize = CGSize(width: 400, height: 120)
-    
-    init(notchSize: CGSize) {
+    let music: MusicController
+
+    init(notchSize: CGSize, music: MusicController) {
         closedSize = notchSize
+        self.music = music
     }
-    
+
+    var showsActivity: Bool {
+        music.isPlaying && music.title != nil
+    }
+
+    var compactSize: CGSize {
+        let wing = closedSize.height + 6
+        return CGSize(width: closedSize.width + wing * 2, height: closedSize.height)
+    }
+
     var currentSize: CGSize {
-        isExpanded ? expandedSize : closedSize
+        if isExpanded { return expandedSize }
+        if showsActivity { return compactSize }
+        return closedSize
     }
 }

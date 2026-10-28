@@ -1,5 +1,5 @@
 //
-//  Untitled.swift
+//  Isle_Project.swift
 //  MyApp
 //
 //  Created by Gian Lardizabal on 10/26/26.
@@ -10,12 +10,26 @@ struct IslandView: View {
     let state: IslandState
     let music: MusicController
 
+    private var showsCompact: Bool {
+        state.showsActivity && !state.isExpanded
+    }
+
     var body: some View {
         VStack {
             ZStack(alignment: .top) {
                 Color.black
 
-               
+                CompactActivityView(
+                    music: music,
+                    notchWidth: state.closedSize.width,
+                    height: state.closedSize.height
+                )
+                .frame(width: state.compactSize.width, height: state.closedSize.height)
+                .opacity(showsCompact ? 1 : 0)
+                .blur(radius: showsCompact ? 0 : 4)
+                .animation(.easeOut(duration: 0.2), value: showsCompact)
+                .allowsHitTesting(false)
+
                 NowPlayingView(music: music)
                     .frame(
                         width: state.expandedSize.width,
@@ -35,6 +49,7 @@ struct IslandView: View {
             }
             .frame(width: state.currentSize.width, height: state.currentSize.height, alignment: .top)
             .clipShape(NotchShape(radius: state.isExpanded ? 24 : 10))
+            .animation(.spring(response: 0.45, dampingFraction: 0.8), value: state.showsActivity)
             .onChange(of: state.isExpanded) { _, isExpanded in
                 if isExpanded && music.title == nil {
                     music.refresh()

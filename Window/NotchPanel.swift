@@ -17,7 +17,7 @@ final class NotchPanel: NSPanel {
     private let hoverPadding: CGFloat = 8
     
     init(screen: NSScreen, music: MusicController){
-        state = IslandState(notchSize: screen.notchSize)
+        state = IslandState(notchSize: screen.notchSize, music: music)
         screenFrame = screen.frame
         
         let canvas = NSSize(width: 640, height: 240)
