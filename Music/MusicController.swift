@@ -22,6 +22,7 @@ final class MusicController {
     var isPlaying = false
     private(set) var activeApp: MusicApp?
     var artwork: NSImage?
+    var artworkColor: Color?
     @ObservationIgnored
     private var artworkTrack: String?
     
@@ -152,6 +153,7 @@ final class MusicController {
             let data = await Self.fetchArtworkData(from: app)
             guard trackKey == key, let data else { return }
             artwork = NSImage(data: data)
+            artworkColor = ArtworkColor.from(data).map { Color(nsColor: $0 )}
         }
     }
     
@@ -174,6 +176,7 @@ final class MusicController {
         activeApp = nil
         artwork = nil
         artworkTrack = nil
+        artworkColor = nil
     }
     
     
