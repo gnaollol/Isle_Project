@@ -12,6 +12,8 @@ struct NowPlayingView: View {
 
     var body: some View {
         HStack(spacing: 16) {
+            ArtworkView(image: music.artwork, cornerRadius: 10)
+                .frame(width: 52, height: 52)
             VStack(alignment: .leading, spacing: 2) {
                 Text(music.title ?? "Nothing playing")
                     .font(.headline)

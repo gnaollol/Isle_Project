@@ -18,7 +18,7 @@ struct CompactActivityView: View {
             
             Spacer(minLength: notchWidth)
             
-            MusicBarsView(isPlaying: music.isPlaying)
+            MusicBarsView(isPlaying: music.isPlaying, color: music.artworkColor)
                 .frame(width: height - 14, height: height - 16)
         }
         .padding(.horizontal, 8)
