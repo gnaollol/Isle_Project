@@ -13,12 +13,13 @@ struct StatusMenu: View {
         Button("Quit App") {
             NSApplication.shared.terminate(nil)
         }
+        .keyboardShortcut("q")
         Button("Settings"){
-           // NSApplication.shared
+           // 
         }
         Button("Launch at Login"){
             //
         }
-        .keyboardShortcut("q")
+        
     }
 }
