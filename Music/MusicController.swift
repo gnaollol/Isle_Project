@@ -23,6 +23,10 @@ final class MusicController {
     private(set) var activeApp: MusicApp?
     var artwork: NSImage?
     var artworkColor: Color?
+    var duration: TimeInterval = 0
+    private(set) var position: TimeInterval = 0
+    private(set) var positionDate = Date()
+    
     @ObservationIgnored
     private var artworkTrack: String?
     
@@ -130,10 +134,12 @@ final class MusicController {
     private func apply(title: String?, artist: String?, playing: Bool, from app: MusicApp) {
         if !playing, let activeApp, activeApp != app, isPlaying { return }
         
+        freezePosition()
         self.title = title
         self.artist = artist
         self.isPlaying = playing
         self.activeApp = app
+        syncPosition()
         
         if trackKey != artworkTrack {
             loadArtwork(from: app)
@@ -177,10 +183,42 @@ final class MusicController {
         artwork = nil
         artworkTrack = nil
         artworkColor = nil
+        duration = 0
+        position = 0
+    }
+    func currentPosition(at date: Date = Date()) -> TimeInterval {
+        guard isPlaying else { return position }
+        let sinceLastCheck = max(date.timeIntervalSince(positionDate),0)
+        return min(position + sinceLastCheck, duration)
     }
     
+    private func freezePosition(){
+        position = currentPosition()
+        positionDate = Date()
+    }
+    
+    func syncPosition() {
+        guard let app = activeApp, app.isRunning else { return }
+        Task {
+            guard let output = await Self.runScript(app.positionScript)?.text else { return }
+            let values = output.split(separator: "\n").compactMap { Double($0) }
+            guard values.count == 2, app == activeApp else { return }
+            position = values[0] / 1000
+            duration = values[1] / 1000
+            positionDate = Date()
+        }
+    }
+    
+    func seek(to seconds: TimeInterval){
+        guard let app = activeApp, app.isRunning else { return }
+        position = seconds
+        positionDate = Date()
+        let source = "tell application \"\(app.rawValue)\" to set player position to \(Int(seconds))"
+        Task {await Self.runScript(source)}
+    }
     
     func playPause() {
+        freezePosition()
         isPlaying.toggle()
         pendingPlayState = (isPlaying, Date().addingTimeInterval(1))
         send("playpause")

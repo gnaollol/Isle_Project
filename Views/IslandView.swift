@@ -17,8 +17,6 @@ struct IslandView: View {
     var body: some View {
         VStack {
             ZStack(alignment: .top) {
-                Color.black
-
                 CompactActivityView(
                     music: music,
                     notchWidth: state.closedSize.width,
@@ -48,11 +46,16 @@ struct IslandView: View {
                     .allowsHitTesting(state.isExpanded)
             }
             .frame(width: state.currentSize.width, height: state.currentSize.height, alignment: .top)
-            .clipShape(NotchShape(radius: state.isExpanded ? 24 : 10))
+            .padding(.horizontal, state.topRadius) // room for the shoulders
+            .background(Color.black)
+            .clipShape(NotchShape(bottomRadius: state.bottomRadius, topRadius: state.topRadius))
             .animation(.spring(response: 0.45, dampingFraction: 0.8), value: state.showsActivity)
             .onChange(of: state.isExpanded) { _, isExpanded in
-                if isExpanded && music.title == nil {
+                guard isExpanded else { return }
+                if music.title == nil {
                     music.refresh()
+                } else {
+                    music.syncPosition() 
                 }
             }
 

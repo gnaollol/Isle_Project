@@ -3,7 +3,7 @@
 //  Isle_Project
 //
 //  Created by Gian Lardizabal on 10/27/26.
-//
+//  Edited by Claude Code on 10/28/26 @ 10:34PM
 
 import SwiftUI
 
@@ -23,7 +23,7 @@ struct MusicBarsView: View {
                     ForEach(speeds.indices, id: \.self) { index in
                         Capsule()
                             .fill(color ?? .white.opacity(0.85))
-                            .frame(height: barHeight(index, time: time, maxHeight: geometry.size.height))
+                            .frame(width: 2, height: barHeight(index, time: time, maxHeight: geometry.size.height))
                     }
                 }
                 .frame(maxHeight: .infinity)

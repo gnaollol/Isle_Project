@@ -40,4 +40,17 @@ enum MusicApp: String, CaseIterable {
         end tell
         """
     }
+    
+    var positionScript: String {
+            let length = self == .appleMusic
+                ? "(duration of current track) * 1000"
+                : "duration of current track"
+            return """
+            tell application "\(rawValue)"
+                set positionMs to (player position * 1000) as integer
+                set durationMs to (\(length)) as integer
+                return (positionMs as string) & linefeed & (durationMs as string)
+            end tell
+            """
+    }
 }

@@ -80,10 +80,11 @@ final class NotchPanel: NSPanel {
     
     private func islandRect() -> NSRect {
         let size = state.currentSize
+        let width = size.width + state.topRadius * 2
         let rect = NSRect(
             x: screenFrame.midX - size.width / 2,
             y: screenFrame.maxY - size.height,
-            width: size.width,
+            width: width,
             height: size.height
         )
         return rect.insetBy(dx: -hoverPadding, dy: -hoverPadding)
