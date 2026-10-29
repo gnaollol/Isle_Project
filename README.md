@@ -3,6 +3,10 @@
 Make room for a little **magic**. Say hello to **Isle**, a new macOS dynamic notch application. Isle introduces an interactive dynamic island where you can control your music, monitor live activities, and access information, all in one place. 
 Enjoy fluid animations, intuitive controls, and a seamless experience that feels right at home. 
 
+
+https://github.com/user-attachments/assets/259ea5fe-1a2a-4b2e-b176-c7f8463db9d3
+
+
 **Completed Features**
 - Dynamic Island with working animations
 - Working Spotify & Apple Music Compatibility
