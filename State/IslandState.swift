@@ -12,7 +12,7 @@ final class IslandState {
     var isExpanded = false
 
     let closedSize: CGSize
-    let expandedSize = CGSize(width: 400, height: 120)
+    let expandedSize = CGSize(width: 420, height: 200)
     let music: MusicController
 
     init(notchSize: CGSize, music: MusicController) {
@@ -28,7 +28,15 @@ final class IslandState {
         let wing = closedSize.height + 6
         return CGSize(width: closedSize.width + wing * 2, height: closedSize.height)
     }
-
+    
+    var bottomRadius: CGFloat{
+        isExpanded ? 28 : 10
+    }
+    
+    var topRadius: CGFloat {
+        isExpanded ? 14 : 6
+    }
+    
     var currentSize: CGSize {
         if isExpanded { return expandedSize }
         if showsActivity { return compactSize }
