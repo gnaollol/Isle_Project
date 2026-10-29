@@ -225,7 +225,22 @@ final class MusicController {
     }
     
     func nextTrack() { send("next track") }
-    func previousTrack() { send("previous track") }
+    func previousTrack(){
+        if currentPosition() > 3{
+            position = 0
+            positionDate = Date()
+        }
+        
+        send("previous track")
+        syncPositionSoon()
+    }
+    
+    private func syncPositionSoon(){
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            syncPosition()
+        }
+    }
     
     private func send(_ command: String) {
         guard let app = activeApp, app.isRunning else { return }
