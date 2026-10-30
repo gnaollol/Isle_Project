@@ -18,6 +18,7 @@ struct ExpandedIslandView: View {
             WidgetIconRow(state: state)
             pager
         }
+        .padding(.top, 20)
         .padding(.bottom, 14)
     }
 
