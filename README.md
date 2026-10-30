@@ -14,7 +14,7 @@ https://github.com/user-attachments/assets/259ea5fe-1a2a-4b2e-b176-c7f8463db9d3
 - Time Slider / Multimedia Buttons
 
 **To be Developed**
-- [ ] Swipe to other Widgets
+- [x] Swipe to other Widgets
 - [ ] Youtube Integration
 - [ ] Pill shape rather than just a notch
 - [ ] Other widgets (Timer, Calendar, Weather, Notes)
