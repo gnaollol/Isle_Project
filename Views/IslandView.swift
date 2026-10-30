@@ -9,6 +9,7 @@ import SwiftUI
 struct IslandView: View {
     let state: IslandState
     let music: MusicController
+    let calendar: CalendarService
 
     private var showsCompact: Bool {
         state.showsActivity && !state.isExpanded
@@ -28,7 +29,7 @@ struct IslandView: View {
                 .animation(.easeOut(duration: 0.2), value: showsCompact)
                 .allowsHitTesting(false)
 
-                NowPlayingView(music: music)
+                ExpandedIslandView(state: state, music: music, calendar: calendar)
                     .frame(
                         width: state.expandedSize.width,
                         height: state.expandedSize.height - state.closedSize.height
@@ -52,13 +53,19 @@ struct IslandView: View {
             .animation(.spring(response: 0.45, dampingFraction: 0.8), value: state.showsActivity)
             .onChange(of: state.isExpanded) { _, isExpanded in
                 guard isExpanded else { return }
+                if state.page == .calendar{
+                    Task {await calendar.load() }
+                }
                 if music.title == nil {
                     music.refresh()
                 } else {
                     music.syncPosition() 
                 }
-            }
-
+                    .onchange(of: state.page) { _, page in
+                        if page == .calendar {
+                            Task { await calendar.load() }
+                        }
+                    }
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
