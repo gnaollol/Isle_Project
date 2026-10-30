@@ -5,6 +5,13 @@
 //  Created by Gian Lardizabal on 10/26/26.
 //
 
+//
+//  NotchPanel.swift
+//  MyApp
+//
+//  Created by Gian Lardizabal on 10/26/26.
+//
+
 import AppKit
 import SwiftUI
 
@@ -14,13 +21,13 @@ final class NotchPanel: NSPanel {
     private let screenFrame: NSRect
     private var tracker: MouseTracker?
     private var scrollMonitor: Any?
-    
+
     private var swipeDistance: CGFloat = 0
     private let swipeThreshold: CGFloat = 60
     
     private let hoverPadding: CGFloat = 8
     
-    init(screen: NSScreen, music: MusicController, calendar: CalendarService){
+    init(screen: NSScreen, music: MusicController, calendar: CalendarService) {
         state = IslandState(notchSize: screen.notchSize, music: music)
         screenFrame = screen.frame
         
@@ -60,10 +67,12 @@ final class NotchPanel: NSPanel {
             self?.mouseMoved(to: point)
         }
         tracker?.start()
+
+       
         scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
-                    self?.handleScroll(event)
-                    return event
-                }
+            self?.handleScroll(event)
+            return event
+        }
     }
     
     override var canBecomeKey: Bool { true }
@@ -90,8 +99,7 @@ final class NotchPanel: NSPanel {
         }
     }
     
-
-    
+   
     private func handleScroll(_ event: NSEvent) {
         guard state.isExpanded else { return }
 
@@ -110,6 +118,7 @@ final class NotchPanel: NSPanel {
             break
         }
     }
+
 
     private func resisted(_ distance: CGFloat) -> CGFloat {
         let isFirst = state.page.rawValue == 0
@@ -132,7 +141,7 @@ final class NotchPanel: NSPanel {
         }
         swipeDistance = 0
     }
-    
+
     private func islandRect() -> NSRect {
         let size = state.currentSize
         let width = size.width + state.topRadius * 2

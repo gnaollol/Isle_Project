@@ -10,11 +10,11 @@ struct IslandView: View {
     let state: IslandState
     let music: MusicController
     let calendar: CalendarService
-
+    
     private var showsCompact: Bool {
         state.showsActivity && !state.isExpanded
     }
-
+    
     var body: some View {
         VStack {
             ZStack(alignment: .top) {
@@ -28,7 +28,7 @@ struct IslandView: View {
                 .blur(radius: showsCompact ? 0 : 4)
                 .animation(.easeOut(duration: 0.2), value: showsCompact)
                 .allowsHitTesting(false)
-
+                
                 ExpandedIslandView(state: state, music: music, calendar: calendar)
                     .frame(
                         width: state.expandedSize.width,
@@ -40,8 +40,8 @@ struct IslandView: View {
                     .scaleEffect(state.isExpanded ? 1 : 0.9, anchor: .top)
                     .animation(
                         state.isExpanded
-                            ? .easeOut(duration: 0.25).delay(0.1)
-                            : .easeOut(duration: 0.2),
+                        ? .easeOut(duration: 0.25).delay(0.1)
+                        : .easeOut(duration: 0.2),
                         value: state.isExpanded
                     )
                     .allowsHitTesting(state.isExpanded)
@@ -53,19 +53,21 @@ struct IslandView: View {
             .animation(.spring(response: 0.45, dampingFraction: 0.8), value: state.showsActivity)
             .onChange(of: state.isExpanded) { _, isExpanded in
                 guard isExpanded else { return }
-                if state.page == .calendar{
-                    Task {await calendar.load() }
+                if state.page == .calendar {
+                    Task { await calendar.load() }
                 }
                 if music.title == nil {
                     music.refresh()
                 } else {
-                    music.syncPosition() 
+                    music.syncPosition()
                 }
-                    .onchange(of: state.page) { _, page in
-                        if page == .calendar {
-                            Task { await calendar.load() }
-                        }
-                    }
+            }
+            .onChange(of: state.page) { _, page in
+                if page == .calendar {
+                    Task { await calendar.load() }
+                }
+            }
+
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

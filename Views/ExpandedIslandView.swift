@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct ExpandedIslandView: View {
     let state: IslandState
     let music: MusicController
@@ -20,7 +21,7 @@ struct ExpandedIslandView: View {
         .padding(.bottom, 14)
     }
 
-    
+
     private var pager: some View {
         let width = state.expandedSize.width
 
@@ -33,7 +34,7 @@ struct ExpandedIslandView: View {
         }
         .frame(width: width, alignment: .leading)
         .offset(x: -CGFloat(state.page.rawValue) * width + state.pageDragOffset)
-        .clipped()
+        .clipped() 
     }
 
     @ViewBuilder

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-enum islandPage: Int, CaseIterable{
+enum IslandPage: Int, CaseIterable{
     case music
     case calendar
     
