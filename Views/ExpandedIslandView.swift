@@ -35,7 +35,6 @@ struct ExpandedIslandView: View {
         }
         .frame(width: width, alignment: .leading)
         .offset(x: -CGFloat(state.page.rawValue) * width + state.pageDragOffset)
-        .clipped() 
     }
 
     @ViewBuilder

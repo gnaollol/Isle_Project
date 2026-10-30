@@ -24,6 +24,11 @@ final class NotchPanel: NSPanel {
 
     private var swipeDistance: CGFloat = 0
     private let swipeThreshold: CGFloat = 60
+    private let maxDragDistance: CGFloat = 120
+    private let maxStepPerEvent: CGFloat = 20
+    private let swipeCooldown: TimeInterval = 0.15
+    private var lastSwitchDate = Date.distantPast
+    private var isIgnoringSwipe = false
     
     private let hoverPadding: CGFloat = 8
     
@@ -104,16 +109,23 @@ final class NotchPanel: NSPanel {
         guard state.isExpanded else { return }
 
         guard !event.phase.isEmpty, event.momentumPhase.isEmpty else { return }
-
+        
         switch event.phase {
         case .began:
             swipeDistance = 0
+            isIgnoringSwipe = Date().timeIntervalSince(lastSwitchDate) < swipeCooldown
         case .changed:
+            guard !isIgnoringSwipe else { return }
             let fingerDelta = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
-            swipeDistance += fingerDelta
+            let step = min(max(fingerDelta, -maxStepPerEvent), maxStepPerEvent)
+            swipeDistance = min(max(swipeDistance + step, -maxDragDistance), maxDragDistance)
             state.pageDragOffset = resisted(swipeDistance)
         case .ended, .cancelled:
-            finishSwipe()
+            if isIgnoringSwipe {
+                isIgnoringSwipe = false
+            } else {
+                finishSwipe()
+            }
         default:
             break
         }
@@ -134,6 +146,10 @@ final class NotchPanel: NSPanel {
         if swipeDistance < -swipeThreshold { index += 1 }
         if swipeDistance > swipeThreshold { index -= 1 }
         index = min(max(index, 0), IslandPage.allCases.count - 1)
+        
+        if index != state.page.rawValue{
+            lastSwitchDate = Date()
+        }
 
         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
             state.page = IslandPage.allCases[index]
