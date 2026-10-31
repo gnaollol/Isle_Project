@@ -4,6 +4,7 @@ import SwiftUI
 struct IslandApp: App {
     
     
+    
     @NSApplicationDelegateAdaptor(AppDelegate.self)
     var appDelegate
     
