@@ -2,9 +2,6 @@ import SwiftUI
 
 @main
 struct IslandApp: App {
-    
-    
-    
     @NSApplicationDelegateAdaptor(AppDelegate.self)
     var appDelegate
     
@@ -14,7 +11,9 @@ struct IslandApp: App {
                 StatusMenu()
         }
         
-        Settings { EmptyView() }
+        Settings {
+            SettingsView()
+        }
     
     }
 }

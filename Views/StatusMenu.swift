@@ -9,17 +9,24 @@ import AppKit
 
 
 struct StatusMenu: View {
+    @Environment(\.openSettings) private var openSettings
+    
     var body: some View {
         Button("Quit App") {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
+        
         Button("Settings"){
-           // 
+            NSApplication.shared.activate()
+            openSettings()
         }
+        .keyboardShortcut("s", modifiers: [.command])
+        
         Button("Launch at Login"){
-            //
+            
         }
         
     }
 }
+
