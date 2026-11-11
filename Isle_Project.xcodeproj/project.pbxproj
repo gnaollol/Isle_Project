@@ -6,14 +6,41 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DD8DC55830A4EE46001AA720 /* MediaRemoteAdapterTestClient in CopyFiles */ = {isa = PBXBuildFile; fileRef = DD8DC55530A4EE46001AA720 /* MediaRemoteAdapterTestClient */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		DD8DC55930A4EE46001AA720 /* mediaremote-adapter.pl in CopyFiles */ = {isa = PBXBuildFile; fileRef = DD8DC55630A4EE46001AA720 /* mediaremote-adapter.pl */; };
+		DD8DC55A30A4EE46001AA720 /* MediaRemoteAdapter.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = DD8DC55730A4EE46001AA720 /* MediaRemoteAdapter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DD8DC55430A4EDEC001AA720 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = Resources;
+			files = (
+				DD8DC55830A4EE46001AA720 /* MediaRemoteAdapterTestClient in CopyFiles */,
+				DD8DC55930A4EE46001AA720 /* mediaremote-adapter.pl in CopyFiles */,
+				DD8DC55A30A4EE46001AA720 /* MediaRemoteAdapter.framework in CopyFiles */,
+			);
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* Isle_Project.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Isle_Project.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD8DC55530A4EE46001AA720 /* MediaRemoteAdapterTestClient */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = MediaRemoteAdapterTestClient; path = Vendor/MediaRemoteAdapterTestClient; sourceTree = "<group>"; };
+		DD8DC55630A4EE46001AA720 /* mediaremote-adapter.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; name = "mediaremote-adapter.pl"; path = "Vendor/mediaremote-adapter.pl"; sourceTree = "<group>"; };
+		DD8DC55730A4EE46001AA720 /* MediaRemoteAdapter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaRemoteAdapter.framework; path = Vendor/MediaRemoteAdapter.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		000000000000000000000010 /* Isle_Project */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Isle_Project;
+			sourceTree = "<group>";
+		};
+		DD8DC54D30A4ED85001AA720 /* Vendor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Vendor;
 			sourceTree = "<group>";
 		};
 		DDC737B230904BB40084CEFF /* Window */ = {
@@ -50,12 +77,16 @@
 		000000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				DD8DC55630A4EE46001AA720 /* mediaremote-adapter.pl */,
+				DD8DC55730A4EE46001AA720 /* MediaRemoteAdapter.framework */,
+				DD8DC55530A4EE46001AA720 /* MediaRemoteAdapterTestClient */,
 				000000000000000000000010 /* Isle_Project */,
 				DDC737B230904BB40084CEFF /* Window */,
 				DDC737BD30904C240084CEFF /* Views */,
 				DDC737C7309059170084CEFF /* State */,
 				DDC737CF3090617B0084CEFF /* Music */,
 				000000000000000000000020 /* Products */,
+				DD8DC54D30A4ED85001AA720 /* Vendor */,
 			);
 			sourceTree = "<group>";
 		};
@@ -77,6 +108,7 @@
 				000000000000000120000000 /* Sources */,
 				000000000000000130000000 /* Frameworks */,
 				000000000000000140000000 /* Resources */,
+				DD8DC55430A4EDEC001AA720 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -285,6 +317,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Vendor",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Island App controls your music from the notch";
@@ -326,6 +362,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Vendor",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "Island App controls your music from the notch";
