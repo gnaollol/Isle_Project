@@ -22,7 +22,7 @@ struct NowPlayingView: View {
                         .foregroundStyle(.white)
                         .lineLimit(1)
 
-                    Text(music.artist ?? "Open Music or Spotify")
+                    Text(music.artist ?? "Waiting for media!")
                         .font(.system(size: 13))
                         .foregroundStyle(.white.opacity(0.6))
                         .lineLimit(1)
