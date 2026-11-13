@@ -12,14 +12,18 @@ https://github.com/user-attachments/assets/259ea5fe-1a2a-4b2e-b176-c7f8463db9d3
 - Working Spotify & Apple Music Compatibility
 - Album Cover & Visualizer Color Matching
 - Time Slider / Multimedia Buttons
+- Settings Section with Extended Media Support Button
+- Calendar Integration/Widget
+- Multimedia Integration (Other apps from Spotify & Music)
 
 **To be Developed**
 - [x] Swipe to other Widgets
-- [ ] Youtube Integration
+- [x] Youtube Integration
+- [x] Calendar Integration
 - [ ] Pill shape rather than just a notch
 - [ ] Other widgets (Timer, Calendar, Weather, Notes)
 - [ ] Animated Album Cover (Transition when new song is played)
-- [ ] Email & Calendar Integration
+- [ ] Email Integration
 - [ ] And more...
 
 **Tech Stack**
