@@ -15,7 +15,13 @@ final class MusicController {
     private(set) var positionDate = Date()
 
     @ObservationIgnored
-    private let source: NowPlayingSource
+    private var source: NowPlayingSource = AppleScriptSource()
+
+    @ObservationIgnored
+    private var wantsAdapter = false
+
+    @ObservationIgnored
+    private var settingsObserver: NSObjectProtocol?
 
     @ObservationIgnored
     private var artworkTrack: String?
@@ -24,11 +30,61 @@ final class MusicController {
     private var pendingPlayState: (isPlaying: Bool, deadline: Date)?
 
     init() {
-        source = AppleScriptSource()
+        connect(source)
+        updateSource()
+
+        settingsObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateSource() }
+        }
+    }
+
+
+    private func updateSource() {
+        let wants = UserDefaults.standard.bool(forKey: SettingsKeys.useExtendedMediaSupport)
+        guard wants != wantsAdapter else { return }
+        wantsAdapter = wants
+
+        guard wants else {
+            if source is AdapterSource { switchTo(AppleScriptSource()) }
+            return
+        }
+
+        Task {
+            guard await AdapterSource.isAvailable(), wantsAdapter, !(source is AdapterSource) else { return }
+            useAdapter()
+        }
+    }
+
+    private func useAdapter() {
+        let adapter = AdapterSource()
+        adapter.onFailure = { [weak self] in
+            guard let self, source is AdapterSource else { return }
+            switchTo(AppleScriptSource())
+        }
+        switchTo(adapter)
+    }
+
+    private func connect(_ source: NowPlayingSource) {
         source.onChange = { [weak self] info in
             self?.handle(info)
         }
         source.start()
+    }
+
+    private func switchTo(_ newSource: NowPlayingSource) {
+        source.onChange = nil
+        source.stop()
+        source = newSource
+        pendingPlayState = nil
+        connect(newSource)
+
+        Task {
+            let info = await newSource.currentInfo()
+            guard source === newSource else { return }
+            if let info { apply(info) } else { clear() }
+        }
     }
 
 
