@@ -14,12 +14,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         music.refresh()
         setupPanel()
-        
+
         NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in self?.setupPanel() }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        music.shutdown()
     }
     
     private func setupPanel() {

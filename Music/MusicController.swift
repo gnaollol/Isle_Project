@@ -86,7 +86,11 @@ final class MusicController {
             if let info { apply(info) } else { clear() }
         }
     }
-
+    
+    func shutdown(){
+        source.onChange = nil
+        source.stop()
+    }
 
     func refresh() {
         Task {

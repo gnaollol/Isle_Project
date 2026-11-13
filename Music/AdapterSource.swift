@@ -30,6 +30,7 @@ final class AdapterSource: NowPlayingSource {
             onFailure?()
             return
         }
+        Self.killOrphanedStreams(script: script)
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
         process.arguments = [script, framework, "stream", "--no-diff", "--no-artwork", "--micros", "--debounce=100"]
@@ -48,6 +49,15 @@ final class AdapterSource: NowPlayingSource {
         }
         do { try process.run() } catch { onFailure?(); return }
         self.process = process
+    }
+    
+    private static func killOrphanedStreams(script: String){
+        let pkill = Process()
+        pkill.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
+        pkill.arguments = ["-P", "1", "-f", NSRegularExpression.escapedPattern(for: script)]
+        
+        try? pkill.run()
+        pkill.waitUntilExit()
     }
 
     func stop() {
