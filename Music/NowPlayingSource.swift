@@ -12,6 +12,7 @@ struct NowPlayingInfo{
     var artist: String?
     var isPlaying: Bool
     var appName: String
+    var playbackRate: Double = 1
 }
 
 protocol NowPlayingSource: AnyObject {

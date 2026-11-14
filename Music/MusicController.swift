@@ -25,6 +25,9 @@ final class MusicController {
 
     @ObservationIgnored
     private var artworkTrack: String?
+    
+    @ObservationIgnored
+    private var playbackRate: Double = 1
 
     @ObservationIgnored
     private var pendingPlayState: (isPlaying: Bool, deadline: Date)?
@@ -122,6 +125,7 @@ final class MusicController {
         artist = info.artist
         isPlaying = info.isPlaying
         activeApp = info.appName
+        playbackRate = info.playbackRate
         syncPosition()
 
         if trackKey != artworkTrack {
@@ -139,6 +143,7 @@ final class MusicController {
         artworkColor = nil
         duration = 0
         position = 0
+        playbackRate = 1
     }
 
 
@@ -163,7 +168,7 @@ final class MusicController {
     func currentPosition(at date: Date = Date()) -> TimeInterval {
         guard isPlaying else { return position }
         let sinceLastCheck = max(date.timeIntervalSince(positionDate), 0)
-        return min(position + sinceLastCheck, duration)
+        return min(position + sinceLastCheck * playbackRate, duration)
     }
 
     private func freezePosition() {

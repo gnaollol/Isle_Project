@@ -96,13 +96,19 @@ final class AdapterSource: NowPlayingSource {
             title: title,
             artist: payload["artist"] as? String,
             isPlaying: payload["playing"] as? Bool ?? false,
-            appName: appName
+            appName: appName,
+            playbackRate: Self.playbackRate(in: payload)
         )
     }
 
     private static func bundleID(in payload: [String: Any]) -> String? {
         payload["parentApplicationBundleIdentifier"] as? String ?? payload["bundleIdentifier"] as? String
     }
+    
+    private static func playbackRate(in payload: [String: Any]) -> Double {
+            guard let rate = payload["playbackRate"] as? Double, rate > 0 else { return 1 }
+            return rate
+        }
 
     func currentInfo() async -> NowPlayingInfo? {
         guard let payload = await Self.get(["--no-artwork", "--micros"]) else { return nil }
@@ -115,8 +121,7 @@ final class AdapterSource: NowPlayingSource {
               let duration = latest["durationMicros"] as? Double else { return nil }
         var position = elapsed / 1_000_000
         if latest["playing"] as? Bool == true, let timestamp = latest["timestampEpochMicros"] as? Double {
-            position += max(Date().timeIntervalSince1970 - timestamp / 1_000_000, 0)
-        }
+            position += max(Date().timeIntervalSince1970 - timestamp / 1_000_000, 0) * Self.playbackRate(in: latest)        }
         return (position, duration / 1_000_000)
     }
 
