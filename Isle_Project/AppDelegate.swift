@@ -13,6 +13,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         music.refresh()
+        calendar.reload()
+        
         setupPanel()
 
         NotificationCenter.default.addObserver(

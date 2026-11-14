@@ -55,6 +55,8 @@ struct IslandView: View {
                 guard isExpanded else { return }
                 if state.page == .calendar {
                     Task { await calendar.load() }
+                } else {
+                    calendar.reload()   
                 }
                 if music.title == nil {
                     music.refresh()
