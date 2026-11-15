@@ -10,11 +10,13 @@ import AppKit
 final class AdapterSource: NowPlayingSource {
     var onChange: ((NowPlayingInfo?) -> Void)?
     var onFailure: (() -> Void)?
+    var onArtworkChange: ((Data) -> Void)?
 
     private var process: Process?
     private var buffer = Data()
     private var latest: [String: Any] = [:]
-
+    private var timesAreTrusted = true
+    
     nonisolated private static let scriptURL = Bundle.main.url(forResource: "mediaremote-adapter", withExtension: "pl")
     nonisolated private static let frameworkURL = Bundle.main.url(forResource: "MediaRemoteAdapter", withExtension: "framework")
     nonisolated private static let testClientURL = Bundle.main.url(forResource: "MediaRemoteAdapterTestClient", withExtension: nil)
@@ -33,7 +35,7 @@ final class AdapterSource: NowPlayingSource {
         Self.killOrphanedStreams(script: script)
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
-        process.arguments = [script, framework, "stream", "--no-diff", "--no-artwork", "--micros", "--debounce=100"]
+        process.arguments = [script, framework, "stream", "--no-diff", "--micros", "--debounce=100"]
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice
@@ -50,12 +52,11 @@ final class AdapterSource: NowPlayingSource {
         do { try process.run() } catch { onFailure?(); return }
         self.process = process
     }
-    
-    private static func killOrphanedStreams(script: String){
+
+    private static func killOrphanedStreams(script: String) {
         let pkill = Process()
         pkill.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
         pkill.arguments = ["-P", "1", "-f", NSRegularExpression.escapedPattern(for: script)]
-        
         try? pkill.run()
         pkill.waitUntilExit()
     }
@@ -66,6 +67,7 @@ final class AdapterSource: NowPlayingSource {
         process = nil
         buffer.removeAll()
         latest = [:]
+        timesAreTrusted = true
     }
 
     private func receive(_ data: Data) {
@@ -85,8 +87,15 @@ final class AdapterSource: NowPlayingSource {
     private func handleLine(_ line: Data) {
         guard let object = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
               let payload = object["payload"] as? [String: Any] else { return }
+        let oldArtwork = latest["artworkData"] as? String
+        updateTrust(old: latest, new: payload)
         latest = payload
         onChange?(info(from: payload))
+
+        if let artwork = payload["artworkData"] as? String, artwork != oldArtwork,
+           let data = Data(base64Encoded: artwork) {
+            onArtworkChange?(data)
+        }
     }
 
     private func info(from payload: [String: Any]) -> NowPlayingInfo? {
@@ -104,34 +113,43 @@ final class AdapterSource: NowPlayingSource {
     private static func bundleID(in payload: [String: Any]) -> String? {
         payload["parentApplicationBundleIdentifier"] as? String ?? payload["bundleIdentifier"] as? String
     }
-    
+
     private static func playbackRate(in payload: [String: Any]) -> Double {
-            guard let rate = payload["playbackRate"] as? Double, rate > 0 else { return 1 }
-            return rate
-        }
+        guard let rate = payload["playbackRate"] as? Double, rate > 0 else { return 1 }
+        return rate
+    }
 
     func currentInfo() async -> NowPlayingInfo? {
-        guard let payload = await Self.get(["--no-artwork", "--micros"]) else { return nil }
+        guard let payload = await Self.get(["--micros"]) else { return nil }
+        updateTrust(old: latest, new: payload)
         latest = payload
         return info(from: payload)
     }
 
+    private func updateTrust(old: [String: Any], new: [String: Any]) {
+        let stateChanged = (old["playing"] as? Bool) != (new["playing"] as? Bool)
+        let timesChanged = (old["timestampEpochMicros"] as? Double) != (new["timestampEpochMicros"] as? Double)
+        if timesChanged {
+            timesAreTrusted = true
+        } else if stateChanged, old["playing"] != nil {
+            timesAreTrusted = false
+        }
+    }
+
     func currentPosition() async -> (position: TimeInterval, duration: TimeInterval)? {
-        guard let elapsed = latest["elapsedTimeMicros"] as? Double,
+        guard timesAreTrusted,
+              let elapsed = latest["elapsedTimeMicros"] as? Double,
               let duration = latest["durationMicros"] as? Double else { return nil }
         var position = elapsed / 1_000_000
         if latest["playing"] as? Bool == true, let timestamp = latest["timestampEpochMicros"] as? Double {
-            position += max(Date().timeIntervalSince1970 - timestamp / 1_000_000, 0) * Self.playbackRate(in: latest)        }
+            position += max(Date().timeIntervalSince1970 - timestamp / 1_000_000, 0) * Self.playbackRate(in: latest)
+        }
         return (position, duration / 1_000_000)
     }
 
     func artworkData() async -> Data? {
-        for attempt in 0..<3 {
-            if attempt > 0 { try? await Task.sleep(for: .milliseconds(500)) }
-            if let base64 = await Self.get([])?["artworkData"] as? String,
-               let data = Data(base64Encoded: base64) {
-                return data
-            }
+        if let base64 = latest["artworkData"] as? String, let data = Data(base64Encoded: base64) {
+            return data
         }
         return appIconData()
     }

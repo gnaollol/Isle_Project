@@ -7,6 +7,7 @@ final class MusicController {
     var title: String?
     var artist: String?
     var isPlaying = false
+    private(set) var isAdvancing = false
     private(set) var activeApp: String?
     var artwork: NSImage?
     var artworkColor: Color?
@@ -25,7 +26,7 @@ final class MusicController {
 
     @ObservationIgnored
     private var artworkTrack: String?
-    
+
     @ObservationIgnored
     private var playbackRate: Double = 1
 
@@ -66,6 +67,9 @@ final class MusicController {
             guard let self, source is AdapterSource else { return }
             switchTo(AppleScriptSource())
         }
+        adapter.onArtworkChange = { [weak self] data in
+            self?.showArtwork(data)
+        }
         switchTo(adapter)
     }
 
@@ -89,8 +93,8 @@ final class MusicController {
             if let info { apply(info) } else { clear() }
         }
     }
-    
-    func shutdown(){
+
+    func shutdown() {
         source.onChange = nil
         source.stop()
     }
@@ -111,6 +115,7 @@ final class MusicController {
 
         if let pending = pendingPlayState, info.appName == activeApp {
             if pending.isPlaying != info.isPlaying, Date() < pending.deadline {
+                trackProgress(info)
                 return
             }
             pendingPlayState = nil
@@ -120,13 +125,11 @@ final class MusicController {
     }
 
     private func apply(_ info: NowPlayingInfo) {
-        freezePosition()
         title = info.title
         artist = info.artist
         isPlaying = info.isPlaying
         activeApp = info.appName
-        playbackRate = info.playbackRate
-        syncPosition()
+        trackProgress(info)
 
         if trackKey != artworkTrack {
             loadArtwork()
@@ -144,6 +147,14 @@ final class MusicController {
         duration = 0
         position = 0
         playbackRate = 1
+        isAdvancing = false
+    }
+
+    private func trackProgress(_ info: NowPlayingInfo) {
+        freezePosition()
+        isAdvancing = info.isPlaying
+        playbackRate = info.playbackRate
+        syncPosition()
     }
 
 
@@ -159,14 +170,18 @@ final class MusicController {
         Task {
             let data = await source.artworkData()
             guard trackKey == key, let data else { return }
-            artwork = NSImage(data: data)
-            artworkColor = ArtworkColor.from(data).map { Color(nsColor: $0) }
+            showArtwork(data)
         }
+    }
+
+    private func showArtwork(_ data: Data) {
+        artwork = NSImage(data: data)
+        artworkColor = ArtworkColor.from(data).map { Color(nsColor: $0) }
     }
 
 
     func currentPosition(at date: Date = Date()) -> TimeInterval {
-        guard isPlaying else { return position }
+        guard isAdvancing else { return position }
         let sinceLastCheck = max(date.timeIntervalSince(positionDate), 0)
         return min(position + sinceLastCheck * playbackRate, duration)
     }
@@ -180,8 +195,9 @@ final class MusicController {
         guard let app = activeApp else { return }
         Task {
             guard let result = await source.currentPosition(), app == activeApp else { return }
-            position = result.position
             duration = result.duration
+            guard abs(result.position - currentPosition()) > 0.25 else { return }
+            position = result.position
             positionDate = Date()
         }
     }
@@ -195,10 +211,17 @@ final class MusicController {
 
 
     func playPause() {
-        freezePosition()
         isPlaying.toggle()
-        pendingPlayState = (isPlaying, Date().addingTimeInterval(1))
+        let deadline = Date().addingTimeInterval(1)
+        pendingPlayState = (isPlaying, deadline)
         source.playPause()
+
+        Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard pendingPlayState?.deadline == deadline else { return }
+            pendingPlayState = nil
+            refresh()
+        }
     }
 
     func nextTrack() {

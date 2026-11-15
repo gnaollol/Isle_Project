@@ -18,7 +18,7 @@ struct ProgressBarView: View{
     }
     
     var body: some View{
-        TimelineView(.animation(minimumInterval: 0.5, paused: !music.isPlaying)) { context in
+        TimelineView(.animation(minimumInterval: 0.1, paused: !music.isAdvancing)) { context in
             let duration = music.duration
             let elapsed = dragProgress.map { $0 * duration } ??
             music.currentPosition(at: context.date)
