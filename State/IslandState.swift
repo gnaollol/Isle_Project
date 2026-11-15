@@ -9,11 +9,13 @@ import SwiftUI
 enum IslandPage: Int, CaseIterable{
     case music
     case calendar
+    case notepad
     
     var icon: String{
         switch self{
         case .music: "music.note"
         case .calendar: "calendar"
+        case .notepad: "notepad"
         }
     }
 }

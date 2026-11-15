@@ -44,6 +44,8 @@ struct ExpandedIslandView: View {
             NowPlayingView(music: music)
         case .calendar:
             UpNextWidget(calendar: calendar)
+        case .notepad:
+            Text("hey").foregroundStyle(.white)
         }
     }
 }
