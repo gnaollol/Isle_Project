@@ -17,8 +17,6 @@ struct ChecklistItem: Identifiable{
 @Observable
 final class NotesStore{
     private(set) var items: [ChecklistItem] = [
-        ChecklistItem(text: "Finish Milestone 2"),
-        ChecklistItem(text: "Finish Milestone 3")
     ]
     
     func add(_ text: String){
@@ -28,10 +26,12 @@ final class NotesStore{
     }
     
     func toggle(_ item: ChecklistItem){
+        guard let index = items.firstIndex(where: { $0.id == item.id}) else {return}
+        items[index].isDone.toggle()
         
     }
     
     func delete(_ item: ChecklistItem){
-        
+        items.removeAll(where: {$0.id == item.id})
     }
 }

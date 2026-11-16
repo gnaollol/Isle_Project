@@ -28,10 +28,7 @@ struct NotesWidget: View{
                 Text("Nothing to show!").font(.system(size:13)).foregroundStyle(.white.opacity(0.55))
             } else {
                 ForEach(store.items) { item in
-                    Text(item.text)
-                        .font(.system(size: 13))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
+                    row(item)
                 }
             }
             Spacer(minLength:0)
@@ -39,5 +36,32 @@ struct NotesWidget: View{
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
         .padding(.top, 4)
+    }
+    
+    private func row(_ item: ChecklistItem) -> some View {
+        HStack(spacing: 8){
+            Button {
+                store.toggle(item)
+            } label: {
+                Image(systemName: item.isDone ? "checkmark" : "circle" )
+            }
+            .buttonStyle(.plain)
+            
+            Text(item.text)
+                .strikethrough(item.isDone, pattern: .dash, color: .white)
+                .foregroundStyle(.white.opacity(item.isDone ? 0.5 : 1))
+                .lineLimit(1)
+            
+            Spacer(minLength: 0)
+            
+            Button{
+                store.delete(item)
+            } label : {
+                Image(systemName: "checkmark.circle.fill")
+            }
+            .buttonStyle(.plain)
+        }
+        .font(.system(size: 13))
+        .foregroundStyle(.white)
     }
 }
