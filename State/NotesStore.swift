@@ -22,7 +22,9 @@ final class NotesStore{
     ]
     
     func add(_ text: String){
-        
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        items.append(ChecklistItem(text: trimmed))
     }
     
     func toggle(_ item: ChecklistItem){

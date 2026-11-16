@@ -9,14 +9,30 @@ import SwiftUI
 
 struct NotesWidget: View{
     let store: NotesStore
+    @State private var draft = ""
+    @FocusState private var isTyping: Bool
     
     var body: some View{
         VStack(alignment: .leading, spacing: 8){
-            ForEach(store.items) { item in
-                Text(item.text)
-                    .font(.system(size: 13))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+            TextField("Write something down!", text: $draft)
+                .textFieldStyle(.plain)
+                .font(.system(size: 13))
+                .foregroundStyle(.white)
+                .focused($isTyping)
+                .onSubmit{
+                    store.add(draft)
+                    draft = ""
+                    isTyping = true
+                }
+            if (store.items).isEmpty{
+                Text("Nothing to show!").font(.system(size:13)).foregroundStyle(.white.opacity(0.55))
+            } else {
+                ForEach(store.items) { item in
+                    Text(item.text)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                }
             }
             Spacer(minLength:0)
         }
