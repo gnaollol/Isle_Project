@@ -10,6 +10,7 @@ struct IslandView: View {
     let state: IslandState
     let music: MusicController
     let calendar: CalendarService
+    let notepad: NotesStore
     
     private var showsCompact: Bool {
         state.showsActivity && !state.isExpanded
@@ -29,7 +30,7 @@ struct IslandView: View {
                 .animation(.easeOut(duration: 0.2), value: showsCompact)
                 .allowsHitTesting(false)
                 
-                ExpandedIslandView(state: state, music: music, calendar: calendar)
+                ExpandedIslandView(state: state, music: music, calendar: calendar, notepad: notepad)
                     .frame(
                         width: state.expandedSize.width,
                         height: state.expandedSize.height - state.closedSize.height

@@ -15,7 +15,7 @@ enum IslandPage: Int, CaseIterable{
         switch self{
         case .music: "music.note"
         case .calendar: "calendar"
-        case .notepad: "notepad"
+        case .notepad: "pencil.and.outline"
         }
     }
 }

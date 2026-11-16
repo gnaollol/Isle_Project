@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: NotchPanel?
     private let music = MusicController()
     private let calendar = CalendarService()
+    private let notepad = NotesStore()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         music.refresh()
@@ -35,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 
                 ?? NSScreen.main else { return }
         
-        panel = NotchPanel(screen: screen, music: music, calendar: calendar)
+        panel = NotchPanel(screen: screen, music: music, calendar: calendar, notepad: notepad)
         panel?.orderFrontRegardless()
     }
 }

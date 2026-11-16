@@ -12,7 +12,8 @@ struct ExpandedIslandView: View {
     let state: IslandState
     let music: MusicController
     let calendar: CalendarService
-
+    let notepad: NotesStore
+    
     var body: some View {
         VStack(spacing: 6) {
             WidgetIconRow(state: state)
@@ -45,7 +46,7 @@ struct ExpandedIslandView: View {
         case .calendar:
             UpNextWidget(calendar: calendar)
         case .notepad:
-            Text("hey").foregroundStyle(.white)
+            NotesWidget(store:notepad)
         }
     }
 }
