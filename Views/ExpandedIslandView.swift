@@ -46,7 +46,7 @@ struct ExpandedIslandView: View {
         case .calendar:
             UpNextWidget(calendar: calendar)
         case .notepad:
-            NotesWidget(store:notepad)
+            NotesWidget(store:notepad, state: state)
         }
     }
 }

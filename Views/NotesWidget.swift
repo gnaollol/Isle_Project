@@ -7,57 +7,77 @@
 
 import SwiftUI
 
-struct NotesWidget: View{
+struct NotesWidget: View {
     let store: NotesStore
+    let state: IslandState
+
     @State private var draft = ""
     @FocusState private var isTyping: Bool
-    
-    var body: some View{
-        VStack(alignment: .leading, spacing: 8){
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
             TextField("Write something down!", text: $draft)
                 .textFieldStyle(.plain)
                 .font(.system(size: 13))
                 .foregroundStyle(.white)
                 .focused($isTyping)
-                .onSubmit{
+                .onSubmit {
                     store.add(draft)
                     draft = ""
                     isTyping = true
                 }
-            if (store.items).isEmpty{
-                Text("Nothing to show!").font(.system(size:13)).foregroundStyle(.white.opacity(0.55))
+
+            if store.items.isEmpty {
+                Text("Nothing to show!")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white.opacity(0.55))
             } else {
-                ForEach(store.items) { item in
-                    row(item)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(store.items) { item in
+                            row(item)
+                        }
+                    }
                 }
             }
-            Spacer(minLength:0)
+
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 24)
         .padding(.top, 4)
+        .onChange(of: state.isExpanded) { _, isOpen in
+            if !isOpen {
+                isTyping = false
+            }
+        }
+        .onChange(of: state.page) { _, newPage in
+            if newPage != .notepad {
+                isTyping = false
+            }
+        }
     }
-    
+
     private func row(_ item: ChecklistItem) -> some View {
-        HStack(spacing: 8){
+        HStack(spacing: 8) {
             Button {
                 store.toggle(item)
             } label: {
-                Image(systemName: item.isDone ? "checkmark" : "circle" )
+                Image(systemName: item.isDone ? "checkmark" : "circle")
             }
             .buttonStyle(.plain)
-            
+
             Text(item.text)
                 .strikethrough(item.isDone, pattern: .dash, color: .white)
                 .foregroundStyle(.white.opacity(item.isDone ? 0.5 : 1))
                 .lineLimit(1)
-            
+
             Spacer(minLength: 0)
-            
-            Button{
+
+            Button {
                 store.delete(item)
-            } label : {
-                Image(systemName: "checkmark.circle.fill")
+            } label: {
+                Image(systemName: "bin.xmark")
             }
             .buttonStyle(.plain)
         }
