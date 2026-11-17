@@ -19,6 +19,12 @@ final class NotesStore{
     
     private(set) var items: [ChecklistItem] = []
     
+    var sortedItems: [ChecklistItem] {
+        let notDone = items.filter { !$0.isDone }
+        let done = items.filter { $0.isDone }
+        return notDone + done
+    }
+    
     private let fileURL: URL = {
         let folder = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -38,7 +44,7 @@ final class NotesStore{
     
     private func load() {
         guard let data = try? Data(contentsOf: fileURL), let saved = try? JSONDecoder().decode([ChecklistItem].self, from: data)
-        else { return }
+                else { return }
         items = saved
     }
     
@@ -59,6 +65,5 @@ final class NotesStore{
         items.removeAll(where: {$0.id == item.id})
         save()
     }
-    
-    
 }
+

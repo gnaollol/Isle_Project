@@ -34,7 +34,7 @@ struct NotesWidget: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 6) {
-                        ForEach(store.items) { item in
+                        ForEach(store.sortedItems) { item in
                             row(item)
                         }
                     }
@@ -62,7 +62,9 @@ struct NotesWidget: View {
     private func row(_ item: ChecklistItem) -> some View {
         HStack(spacing: 8) {
             Button {
-                store.toggle(item)
+                withAnimation{
+                    store.toggle(item)
+                }
             } label: {
                 Image(systemName: item.isDone ? "checkmark" : "circle")
             }
@@ -76,7 +78,9 @@ struct NotesWidget: View {
             Spacer(minLength: 0)
 
             Button {
-                store.delete(item)
+                withAnimation{
+                    store.delete(item)
+                }
             } label: {
                 Image(systemName: "bin.xmark")
             }

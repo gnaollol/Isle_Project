@@ -5,13 +5,6 @@
 //  Created by Gian Lardizabal on 10/26/26.
 //
 
-//
-//  NotchPanel.swift
-//  MyApp
-//
-//  Created by Gian Lardizabal on 10/26/26.
-//
-
 import AppKit
 import SwiftUI
 
@@ -29,13 +22,19 @@ final class NotchPanel: NSPanel {
     private let swipeCooldown: TimeInterval = 0.15
     private var lastSwitchDate = Date.distantPast
     private var isIgnoringSwipe = false
-    
+
+    private enum SwipeAxis { case undecided, horizontal, vertical }
+    private var swipeAxis = SwipeAxis.undecided
+    private var sidewaysTravel: CGFloat = 0
+    private var verticalTravel: CGFloat = 0
+    private let axisDecisionDistance: CGFloat = 6
+
     private let hoverPadding: CGFloat = 8
-    
+
     init(screen: NSScreen, music: MusicController, calendar: CalendarService, notepad: NotesStore) {
         state = IslandState(notchSize: screen.notchSize, music: music)
         screenFrame = screen.frame
-        
+
         let canvas = NSSize(width: 640, height: 280)
         let frame = NSRect(
             x: screen.frame.midX - canvas.width / 2,
@@ -43,14 +42,14 @@ final class NotchPanel: NSPanel {
             width: canvas.width,
             height: canvas.height
         )
-        
+
         super.init(
             contentRect: frame,
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-        
+
         isOpaque = false
         backgroundColor = .clear
         hasShadow = false
@@ -62,27 +61,26 @@ final class NotchPanel: NSPanel {
             .fullScreenAuxiliary,
             .ignoresCycle
         ]
-        
+
         ignoresMouseEvents = true
         acceptsMouseMovedEvents = true
-        
+
         contentView = IslandHostingView(rootView: IslandView(state: state, music: music, calendar: calendar, notepad: notepad))
-        
+
         tracker = MouseTracker { [weak self] point in
             self?.mouseMoved(to: point)
         }
         tracker?.start()
 
-       
         scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
             self?.handleScroll(event)
             return event
         }
     }
-    
+
     override var canBecomeKey: Bool { true }
-    
-    override func close(){
+
+    override func close() {
         tracker?.stop()
         tracker = nil
         if let scrollMonitor {
@@ -91,31 +89,42 @@ final class NotchPanel: NSPanel {
         scrollMonitor = nil
         super.close()
     }
-    
+
     private func mouseMoved(to point: NSPoint) {
         let isOverIsland = islandRect().contains(point)
-        
+
         ignoresMouseEvents = !isOverIsland
-        
+
         if isOverIsland != state.isExpanded {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)){
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
                 state.isExpanded = isOverIsland
             }
         }
     }
-    
-   
+
     private func handleScroll(_ event: NSEvent) {
         guard state.isExpanded else { return }
 
         guard !event.phase.isEmpty, event.momentumPhase.isEmpty else { return }
-        
+
         switch event.phase {
         case .began:
             swipeDistance = 0
+            swipeAxis = .undecided
+            sidewaysTravel = 0
+            verticalTravel = 0
             isIgnoringSwipe = Date().timeIntervalSince(lastSwitchDate) < swipeCooldown
         case .changed:
             guard !isIgnoringSwipe else { return }
+
+            if swipeAxis == .undecided {
+                sidewaysTravel += event.scrollingDeltaX
+                verticalTravel += event.scrollingDeltaY
+                guard abs(sidewaysTravel) + abs(verticalTravel) >= axisDecisionDistance else { return }
+                swipeAxis = abs(sidewaysTravel) > abs(verticalTravel) ? .horizontal : .vertical
+            }
+            guard swipeAxis == .horizontal else { return }
+
             let fingerDelta = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
             let step = min(max(fingerDelta, -maxStepPerEvent), maxStepPerEvent)
             swipeDistance = min(max(swipeDistance + step, -maxDragDistance), maxDragDistance)
@@ -123,14 +132,14 @@ final class NotchPanel: NSPanel {
         case .ended, .cancelled:
             if isIgnoringSwipe {
                 isIgnoringSwipe = false
-            } else {
+            } else if swipeAxis == .horizontal {
                 finishSwipe()
             }
+            swipeAxis = .undecided
         default:
             break
         }
     }
-
 
     private func resisted(_ distance: CGFloat) -> CGFloat {
         let isFirst = state.page.rawValue == 0
@@ -146,8 +155,8 @@ final class NotchPanel: NSPanel {
         if swipeDistance < -swipeThreshold { index += 1 }
         if swipeDistance > swipeThreshold { index -= 1 }
         index = min(max(index, 0), IslandPage.allCases.count - 1)
-        
-        if index != state.page.rawValue{
+
+        if index != state.page.rawValue {
             lastSwitchDate = Date()
         }
 
@@ -171,6 +180,6 @@ final class NotchPanel: NSPanel {
     }
 }
 
-final class IslandHostingView<Content: View>: NSHostingView<Content>{
+final class IslandHostingView<Content: View>: NSHostingView<Content> {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }
