@@ -25,6 +25,10 @@ final class NotesStore{
         return notDone + done
     }
     
+    var doneCount: Int {
+        items.filter {$0.isDone}.count
+    }
+    
     private let fileURL: URL = {
         let folder = FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

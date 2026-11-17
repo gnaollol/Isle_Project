@@ -19,19 +19,27 @@ struct NotesWidget: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            TextField("Write something down!", text: $draft)
-                .textFieldStyle(.plain)
-                .font(.system(size: 13))
-                .foregroundStyle(.white)
-                .focused($isTyping)
-                .onSubmit {
-                    store.add(draft)
-                    draft = ""
-                    isTyping = true
+            HStack {
+                TextField("Write something down!", text: $draft)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.white)
+                    .focused($isTyping)
+                    .onSubmit {
+                        store.add(draft)
+                        draft = ""
+                        isTyping = true
+                    }
+
+                if !store.items.isEmpty {
+                    Text("\(store.doneCount) of \(store.items.count) done")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.55))
                 }
+            }
 
             if store.items.isEmpty {
-                Text("Nothing to show!")
+                Text("No notes yet..")
                     .font(.system(size: 13))
                     .foregroundStyle(.white.opacity(0.55))
             } else {
