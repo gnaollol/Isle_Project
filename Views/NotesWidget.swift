@@ -12,7 +12,10 @@ struct NotesWidget: View {
     let state: IslandState
 
     @State private var draft = ""
+    @State private var editingID: UUID?
+    @State private var editDraft = ""
     @FocusState private var isTyping: Bool
+    @FocusState private var isEditing: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -69,11 +72,26 @@ struct NotesWidget: View {
                 Image(systemName: item.isDone ? "checkmark" : "circle")
             }
             .buttonStyle(.plain)
-
-            Text(item.text)
-                .strikethrough(item.isDone, pattern: .dash, color: .white)
-                .foregroundStyle(.white.opacity(item.isDone ? 0.5 : 1))
-                .lineLimit(1)
+            
+            if(editingID == item.id){
+                TextField("", text: $editDraft)
+                    .textFieldStyle(.plain)
+                    .focused($isEditing)
+                    .onAppear { isEditing = true }
+                    .onSubmit{
+                        store.rename(item, to: editDraft)
+                        editingID = nil
+                    }
+            } else {
+                Text(item.text)
+                    .strikethrough(item.isDone, pattern: .dash, color: .white)
+                    .foregroundStyle(.white.opacity(item.isDone ? 0.5 : 1))
+                    .lineLimit(1)
+                    .onTapGesture(count: 2){
+                        editDraft = item.text
+                        editingID = item.id
+                    }
+            }
 
             Spacer(minLength: 0)
 

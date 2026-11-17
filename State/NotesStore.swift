@@ -55,6 +55,14 @@ final class NotesStore{
         save()
     }
     
+    func rename(_ item: ChecklistItem, to text: String){
+        let trimmed = text.trimmingCharacters(in:. whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              let index = items.firstIndex(where: {$0.id == item.id}) else {return}
+        items[index].text = trimmed
+            save()
+    }
+    
     func toggle(_ item: ChecklistItem){
         guard let index = items.firstIndex(where: { $0.id == item.id}) else {return}
         items[index].isDone.toggle()
