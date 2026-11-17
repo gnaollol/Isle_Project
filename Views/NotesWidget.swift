@@ -39,6 +39,7 @@ struct NotesWidget: View {
                         }
                     }
                 }
+                .scrollIndicators(.hidden)
             }
 
             Spacer(minLength: 0)
